@@ -1,0 +1,192 @@
+---
+title: 'Statistical Thinking: Week 6 Lab (mostly code)'
+date: "Due 12noon Wednesday 16 September 2020"
+output:
+  html_document: default
+fontsize: 10pt
+---
+
+```{r setup, include=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+
+knitr::opts_chunk$set(message=FALSE, echo = TRUE, eval=FALSE, tidy = TRUE, tidy.opts = list(comment=TRUE, error=FALSE, message=FALSE, warning=TRUE, include=TRUE, blank = FALSE, width.cutoff = 60))
+```
+
+## Introduction
+
+### Lab Submission 
+
+Good luck and have fun!
+
+#### Steps for Part A (MLE estimation)
+
+```{r, echo=TRUE, eval=TRUE}
+library(tidyverse)
+library(broom)
+library(gridExtra)
+library(MASS) 
+```
+
+a. Set the random generator seed to **seed=2020.06**.
+
+```{r}
+set.seed(2020.06)
+```
+
+b. 
+
+```{r}
+n <- 36
+mu.true <- 10
+sig.true <- 2
+x <- rnorm(n, mean = mu.true, sd = sig.true)
+dt <- tibble(id=1:n, x=x)
+#head(dt)
+```
+
+c. 
+
+```{r}
+p1_normpdf <- dt %>% ggplot(aes(x=x, y=..density..)) +
+  geom_histogram(colour="blue", fill="blue", alpha=0.2) +
+  geom_density(colour="blue", fill="blue", alpha=0.2) +
+  ggtitle("Histogram of n=36 draws simulated from N(10,4)") + 
+  xlab("simulated draws") + theme_bw()
+
+p1_normpdf
+```
+
+d. 
+
+```{r}
+#install.packages("MAss")
+library(MASS)
+normal_fit <- fitdistr(x, "normal")
+normal_fit
+normal_fit %>% tidy()
+```
+
+```{r }
+normal_fit$estimate
+normal_fit$sd
+normal_fit$vcov
+normal_fit$n
+normal_fit$loglik
+```
+
+e. 
+
+```{r}
+## save to simpler names - is clearer what the estimates represent
+mu_fit <- normal_fit$estimate[1]
+sig_fit <-normal_fit$estimate[2]
+
+dt <- dt %>% mutate(x = x, fit_normpdf = dnorm(x, mu_fit, sig_fit))
+
+p1_normpdf <- p1_normpdf + geom_point(data=dt, aes(x=x,y=fit_normpdf),col="red") +  labs(subtitle="Fitted normal shown in red") 
+
+p1_normpdf
+```
+
+
+```{r}
+p1_normpdf <- dt %>% arrange(x) %>% ggplot(aes(x=x, y=..density..)) +
+  geom_histogram(colour="blue", fill="blue", alpha=0.2) +
+  geom_density(colour="blue", fill="blue", alpha=0.2) +
+  ggtitle("Histogram of n=36 draws simulated from N(10,4)") + 
+  xlab("simulated draws") + theme_bw()
+
+p1_normpdf <- p1_normpdf + geom_point(data=dt, aes(x=x,y=fit_normpdf),col="red") +  labs(subtitle="Fitted normal shown in red") 
+
+p1_normpdf <- p1_normpdf + geom_line(data=dt, aes(x=x,y=fit_normpdf),col="red") + 
+  xlim(c(0,20))
+
+p1_normpdf
+```
+
+f. 
+
+```{r}
+dt <- dt %>% mutate(x = x, fit_normCDF = pnorm(x, mu_fit, sig_fit))
+```
+
+g. 
+
+```{r}
+p1_normCDF <- dt %>% arrange(x) %>% ggplot(aes(x=x, y=fit_normCDF)) + 
+  geom_point(col="red")  + 
+  geom_line(colour="red") +
+  ggtitle("Fitted Normal CDF") +
+  theme_bw() +
+  xlim(c(0,20)) +
+  ylab("cumulative probability function (CDF)") + xlab("x")
+
+p1_normCDF
+```
+
+h. 
+
+```{r}
+p1_normCDF <- p1_normCDF + stat_ecdf() + 
+  labs(subtitle="Empirical CDF shown in black") 
+p1_normCDF
+```
+
+#### Steps for part B (Confidence intervals for the MLE)
+
+Insert the **bootplot.f** function first.
+
+i.
+
+```{r}
+set.seed(474)
+```
+
+ii. 
+
+```{r}
+MLE.x <- normal_fit$estimate # point estimate 
+MLE_SE.x <- normal_fit$sd # estimated SE
+
+CLT.MLE.LCI <- MLE.x + qnorm(0.025)*MLE_SE.x
+CLT.MLE.UCI <- MLE.x + qnorm(0.975)*MLE_SE.x
+```
+
+iii.
+
+```{r}
+B <- 5000
+MLE.x_boot <- matrix(rep(NA,2*B), nrow=B, ncol=2)
+for(i in 1:B){
+  temp <- sample(dt$x, size=n, replace=TRUE)
+  MLE.x_boot[i,] <- fitdistr(temp, "normal")$estimate
+}
+```
+
+iv. 
+
+```{r}
+boot.LCI.mu <- quantile(MLE.x_boot[,1], c(0.025, 0.975))
+boot.LCI.sig <- quantile(MLE.x_boot[,2], c(0.025, 0.975))
+
+```
+
+v. 
+
+```{r}
+p_MLEboot.mu <- bootplot.f(MLE.x_boot[,1], bins=100) 
+p_MLEboot.sig <- bootplot.f(MLE.x_boot[,2], bins=100) 
+grid.arrange(p_MLEboot.mu, p_MLEboot.sig, ncol=2)
+```
+
+## Part C
+
+Repeat the exercises shown above for each of the scenarios detailed below. In each case, **use the same seed values as in Parts A and B above**. Modify the variable types, names and plot labels, as needed. 
+
+a. F is N(10, 4) and n=500. 
+
+b. F is Beta(2, 4) and n=100.
+
+c. F is Poisson(5) and n=75. 
+
+
+

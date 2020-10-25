@@ -1,0 +1,189 @@
+# Script file containing code chunks for Assignments 2 and 3
+## Document section headings and 
+## Assignment question numbers and marks included to help with navigation
+
+
+## Code chunk
+knitr::opts_chunk$set(echo = TRUE, eval=TRUE,   warning = FALSE, message = FALSE, 
+                      error = FALSE, tidy.opts = list(width.cutoff=60), tidy=TRUE)
+options(digits = 3)
+
+
+## Code chunk
+library(tidyverse)
+library(bayess)
+library(broom)
+library(car)
+library(GGally)
+library(meifly)
+
+
+## Code chunk
+data(caterpillar)
+cat <- as_tibble(caterpillar)
+
+
+## Part A: Simple Linear Regression
+
+## Q1. [10 marks] 
+   
+## Q2. [5 marks] 
+
+## Code chunk
+tidy1 <- tidy(model1)
+glance1 <- glance(model1)
+augment1 <- augment(model1)
+
+## Q3. [10 marks] 
+
+## Q4. [10 marks] 
+
+## Q5. [10 marks] 
+  
+## Q6. [10 marks] 
+
+## Q7. [15 marks] 
+
+## Q8. [15 marks] 
+
+# Code chunk
+R <- 1000
+n <- nrow(cat)
+
+df<- tibble(b0 = rep(0,R), b1 = rep(0, R))
+
+set.seed(2020)
+for(j in (1:R)){
+  temp <- cat %>% slice_sample(n=n, replace=TRUE)
+  temp1 <- lm(formula=y ~ x1, data = temp)
+  tidytemp1 <- tidy(temp1)
+  df[j,] <- t(tidytemp1$estimate)
+}
+
+## Q9. [15 marks] 
+
+
+## Part B: Multiple Linear Regression
+
+# Code chunk
+ggscatmat(cat, columns=c(1:9)) + 
+  theme(geom.text.size = 7, strip.text.x = element_text(size = 12)) +
+  theme_bw(base_size = 7)
+
+
+## Q10. [10 marks] 
+
+## Q11. [5 marks] 
+
+## Q12. [10 marks] 
+
+
+# Code chunk
+quiet <- function(x) { 
+  sink(tempfile()) 
+  on.exit(sink()) 
+  invisible(force(x)) 
+} 
+
+all_mod <- quiet(fitall(y=cat$y,x=cat[,-c(6,9)], method="lm"))
+summary(all_mod)
+
+
+## Q13. [5 marks] 
+
+
+# Code chunk
+all_mod_s <- all_mod %>%
+  map_df(glance) %>%
+  mutate(model = nmod) %>%
+  mutate(negBIC = -1*BIC, negAIC = -1*AIC) 
+
+label <- NULL
+for (i in nmod) {
+  l <- as.character(summary(all_mod[[i]])$call)[2]
+  label <- c(label,
+    substr(l, 5, str_length(l)))
+}
+
+all_mod_s_long <- all_mod_s %>%
+  gather(fit_stat, val, adj.r.squared, negAIC, 
+         negBIC, logLik, r.squared) %>%
+  group_by(fit_stat, df) %>% 
+  mutate(rank = min_rank(desc(val)))
+
+p1 <- ggplot(all_mod_s_long, aes(df, val)) + 
+  geom_point() + 
+  geom_line(data=filter(all_mod_s_long, rank == 1)) + 
+  facet_wrap(~fit_stat, ncol = 5, scales = "free_y") + 
+  xlab("Number of regressors (including intercept)") + 
+  ylab("Values") + 
+  theme_grey(base_size = 10)
+
+p1
+
+
+# Code chunk
+print("Adjusted R-squared")
+indexadjRsq<-c(1:nmod)[all_mod_s$adj.r.squared==max(all_mod_s$adj.r.squared)]
+indexadjRsq
+max_adjRsq <- all_mod[[indexadjRsq]]
+max_adjRsq
+
+print("log-Likelihood")
+indexlogLik<-c(1:nmod)[all_mod_s$logLik==max(all_mod_s$logLik)]
+indexlogLik
+max_logLik <- all_mod[[indexlogLik]]
+max_logLik
+
+print("Negative AIC")
+indexAIC<-c(1:nmod)[all_mod_s$negAIC==max(all_mod_s$negAIC)]
+indexAIC
+max_AIC <- all_mod[[indexAIC]]
+max_AIC
+
+print("Negative BIC")
+indexBIC<-c(1:nmod)[all_mod_s$negBIC==max(all_mod_s$negBIC)]
+indexBIC
+max_BIC <- all_mod[[indexBIC]]
+max_BIC
+
+print("R-squared")
+indexRsq<-c(1:nmod)[all_mod_s$r.squared==max(all_mod_s$r.squared)]
+indexRsq
+max_Rsq <- all_mod[[indexRsq]]
+max_Rsq
+
+
+## Q14. [20 marks] 
+
+## Q15. [5 marks] 
+
+## Q16. [10 marks] 
+
+
+# Code chunk
+modelf <- lm(y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8, data = cat) 
+tidyf <- tidy(modelf)
+
+R <- 1000
+n <- nrow(cat)
+
+R_coeffs <- tibble(b0 = rep(0,R), b1 = rep(0, R), b2 = rep(0, R), b3=rep(0,R), b4=rep(0,R), b5 = rep(0, R), b6=rep(0,R), b7=rep(0,R), b8=rep(0,R))
+
+set.seed(2020) 
+for(j in (1:R)){
+  temp <- cat %>% slice_sample(n=n, replace=TRUE)
+  tempf <- lm(y ~ x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8, data = temp)
+  tidyf <- tidy(tempf)
+  R_coeffs[j,] <- t(tidyf$estimate)
+}
+
+
+## Part C: Additional Questions for ETC5242 Groups
+
+
+## Q17. [20 marks] 
+
+
+## Q18. [15 marks] 
+

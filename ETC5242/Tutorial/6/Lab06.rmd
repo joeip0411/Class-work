@@ -1,0 +1,169 @@
+---
+title: "ETC5242_Lab6"
+author: "Joe"
+date: "September 8, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(broom)
+library(gridExtra)
+library(MASS)
+```
+
+```{r}
+set.seed(2020.06)
+```
+
+```{r}
+n <- 36
+mu.true <- 10
+sig.true <- 2
+x <- rnorm(n, mean = mu.true, sd = sig.true)
+dt <- tibble(id = 1:n, x = x)
+
+dt
+```
+
+```{r}
+p1_normpdf <- dt %>% ggplot(aes(x = x, y = ..density..)) + geom_histogram(colour = "blue",
+fill = "blue", alpha = 0.2) + geom_density(colour = "blue",
+fill = "blue", alpha = 0.2) + ggtitle("Histogram of n=36 draws simulated from N(10,4)") +
+xlab("simulated draws") + theme_bw()
+p1_normpdf
+```
+
+```{r}
+# try to fit a normal distribution using the generated data
+library(MASS)
+normal_fit <- fitdistr(x, "normal")
+normal_fit
+normal_fit %>% tidy()
+```
+```{r}
+normal_fit$estimate
+normal_fit$sd
+normal_fit$vcov
+normal_fit$n
+normal_fit$loglik
+```
+
+```{r}
+mu_fit <- normal_fit$estimate[1]
+sig_fit <- normal_fit$estimate[2]
+dt <- dt %>% mutate(x = x, fit_normpdf = dnorm(x, mu_fit, sig_fit))
+p1_normpdf <- p1_normpdf + geom_point(data = dt, aes(x = x, y = fit_normpdf),
+col = "red") + labs(subtitle = "Fitted normal shown in red")
+p1_normpdf
+```
+
+```{r}
+dt
+```
+```{r}
+p1_normpdf <- dt %>% arrange(x) %>% ggplot(aes(x = x, y = ..density..)) +
+geom_histogram(colour = "blue", fill = "blue", alpha = 0.2) +
+geom_density(colour = "blue", fill = "blue", alpha = 0.2) +
+ggtitle("Histogram of n=36 draws simulated from N(10,4)") +
+xlab("simulated draws") + theme_bw()
+
+
+p1_normpdf <- p1_normpdf + geom_point(data = dt, aes(x = x, y = fit_normpdf),
+col = "red") + labs(subtitle = "Fitted normal shown in red")
+
+p1_normpdf <- p1_normpdf + geom_line(data = dt, aes(x = x, y = fit_normpdf),
+col = "red") + xlim(c(0, 20))
+
+p1_normpdf
+```
+```{r}
+dt
+```
+
+```{r}
+dt <- dt %>% mutate(x = x, fit_normCDF = pnorm(x, mu_fit, sig_fit))
+dt
+```
+
+```{r}
+p1_normCDF <- dt %>% arrange(x) %>% ggplot(aes(x = x, y = fit_normCDF)) +
+geom_point(col = "red") + geom_line(colour = "red") + ggtitle("Fitted Normal CDF") +
+theme_bw() + xlim(c(0, 20)) + ylab("cumulative probability function (CDF)") +
+xlab("x")
+
+
+p1_normCDF
+```
+
+```{r}
+dt %>% arrange(x)
+```
+
+```{r}
+p1_normCDF <- p1_normCDF + stat_ecdf() + labs(subtitle = "Empirical CDF shown in black")
+p1_normCDF
+```
+
+```{r}
+########### the bootplot.f function ############
+bootplot.f <- function(stat.boot, bins = 50) {
+df <- tibble(stat = stat.boot)
+CI <- round(quantile(stat.boot, c(0.025, 0.975)), 2)
+p <- df %>% ggplot(aes(x = stat, y = ..density..)) + geom_histogram(bins = bins,
+colour = "magenta", fill = "magenta", alpha = 0.2) +
+geom_density(fill = "magenta", colour = "magenta", alpha = 0.2) +
+geom_vline(xintercept = CI, colour = "magenta", linetype = 3) +
+theme_bw()
+p
+}
+######## end of bootplot.f function #######
+```
+
+```{r}
+p_MLEboot.mu <- bootplot.f(MLE.x_boot[, 1], bins = 100)
+p_MLEboot.sig <- bootplot.f(MLE.x_boot[, 2], bins = 100)
+grid.arrange(p_MLEboot.mu, p_MLEboot.sig, ncol = 2)
+```
+
+```{r}
+set.seed(474)
+```
+```{r}
+MLE.x <- normal_fit$estimate # point estimate
+MLE_SE.x <- normal_fit$sd # estimated SE
+CLT.MLE.LCI <- MLE.x + qnorm(0.025) * MLE_SE.x
+CLT.MLE.UCI <- MLE.x + qnorm(0.975) * MLE_SE.x
+
+
+normal_fit
+```
+```{r}
+B <- 5000
+MLE.x_boot <- matrix(rep(NA, 2 * B), nrow = B, ncol = 2)
+for (i in 1:B) {
+temp <- sample(dt$x, size = n, replace = TRUE)
+MLE.x_boot[i, ] <- fitdistr(temp, "normal")$estimate
+}
+```
+```{r}
+head(MLE.x_boot )
+```
+```{r}
+boot.LCI.mu <- quantile(MLE.x_boot[, 1], c(0.025, 0.975))
+boot.LCI.mu
+boot.LCI.sig <- quantile(MLE.x_boot[, 2], c(0.025, 0.975))
+boot.LCI.sig
+```
+
+```{r}
+p_MLEboot.mu <- bootplot.f(MLE.x_boot[, 1], bins = 100)
+p_MLEboot.sig <- bootplot.f(MLE.x_boot[, 2], bins = 100)
+grid.arrange(p_MLEboot.mu, p_MLEboot.sig, ncol = 2)
+```
+

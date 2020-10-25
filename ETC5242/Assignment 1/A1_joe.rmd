@@ -1,0 +1,305 @@
+---
+title: "ETC5242_A1"
+author: "Joe"
+date: "September 7, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=TRUE, warning = FALSE, message = FALSE, error = FALSE, tidy.opts = list(width.cutoff=60), tidy=TRUE)
+```
+
+```{r}
+# from assignment spec
+# The Dataset 
+# install.packages('kableExtra')
+# install.packages("NHANES")
+options(digits = 6)
+library(tidyverse)
+library(broom)
+library(kableExtra)
+library(NHANES)
+
+# keep rows with distinct ID
+dt <- NHANES %>% distinct(ID, .keep_all = TRUE) 
+# row filter age >= 18, select the 6 columns
+dt <- dt  %>% filter(Age >= 18) %>% dplyr::select(Gender, Age, HomeOwn, BPSysAve, BPSys2, BPSys3)
+# remove rows with missing values
+dt <- dt %>% drop_na()
+# change the following variables to numerical values
+dt1 <- dt %>% mutate(Age=as.numeric(Age), BPSysAve=as.numeric(BPSysAve), BPSys2=as.numeric(BPSys2), BPSys3=as.numeric(BPSys3))
+
+```
+
+```{r}
+head(dt1)
+```
+```{r}
+# Q1a
+plot(density(dt1$BPSys2), col = 'blue')
+lines(density(dt1$BPSys3), col = 'red')
+```
+```{r}
+# The two distributions are highly similar with approximately the same mean, median and mode. The two distributions are both positively skewed
+# which means the mean > median > mode. The blood pressure of the majority of the sample falls in the 100-150 range, which is in line with
+# common knowledge.
+```
+
+```{r}
+#Q1b
+
+diff<- dt1$BPSys3 - dt1$BPSys2
+plot(density(diff))
+```
+```{r}
+# The distribution of the difference between BPsys2 and BPsys 3 is approximately normal with a mean of 0. 
+```
+
+
+```{r}
+# Q1c
+summary(diff)
+sd(diff)
+
+```
+```{r}
+summary(dt1)
+sd(dt1$BPSys2)
+sd(dt1$BPSys3)
+#
+```
+```{r}
+# Description of mean, median, mode, max, min, range, standard deviation
+
+# These statistics allows us to examine the central tendency of the dataset as well as its dispersion. These enable us to examine the distribution of the variables of interest. This is important because when doing hypothesis testing such as T-test, the some of the underlying assumptions are normality of data distribution and adequacy of sample size. If the underlying assumptions do not hold, the test will not be reliable.
+```
+
+
+
+
+```{r}
+# Q1d
+mean_vec <- vector()
+
+for (i in 1: 1000){
+  boot_sample <- sample(diff, replace = TRUE)
+  mean_vec <- append(mean_vec, mean(boot_sample))
+}
+
+mean_vec <- sort(mean_vec)
+cat('The 95% confidence interval is: ', as.numeric(quantile(mean_vec, 0.025)),'to', as.numeric(quantile(mean_vec, 0.975)))
+```
+
+```{r}
+plot(density(mean_vec))
+```
+
+```{r}
+# Q1E
+
+sample_mean_diff <- mean(diff)
+
+lower <- sample_mean_diff + sd(diff)/sqrt(nrow(dt1)) * qt(0.025, nrow(dt1)-1)
+upper <- sample_mean_diff + sd(diff)/sqrt(nrow(dt1)) * qt(0.975, nrow(dt1)-1)
+                         
+cat('The 95% confidence interval is between', lower, 'to', upper)
+
+# sd(diff)
+# sqrt(sum((diff - mean(diff))^2) / (nrow(dt) - 1))
+
+
+# The two intervals are highly similar to each other
+```
+```{r}
+# benefit of each approach
+
+# 1. Both do not require knowledge of the true underling population distribution
+# 2. CLT only works for the sampling distribution of a single population, but bootstrap approach can be applied to any point estimator
+# 3. CLT is less computational costly to implement, we just need to compute the sample mean, and then we can plug the numbers into the formula to obtain the confidence interval. Boostrap requires simulation by continuously resampling the sample data.
+```
+
+
+
+```{r}
+# Q1F
+
+cor(dt1$BPSys2, dt1$BPSys3)
+
+# the correlation is 0.95 which means that the two variables are highly positive corellated, therefore they are not independent. 
+# Because whether the two variables are independent affects the approach by which we construct the confidence interval. If the two variables are highly correlated, we estimate the confidence interval by taking the difference between each observation and estimate it as a single population. If they are independent, we will treate them as two population.
+```
+
+
+```{r}
+# bootstrap approach
+
+mean_vec_ind <- vector()
+
+for (i in 1:1000){
+  boot_sample2 <- sample(dt$BPSys2, replace = TRUE)
+  boot_sample3 <- sample(dt$BPSys3, replace = TRUE)
+  
+  mean_diff <- mean(boot_sample3) - mean(boot_sample2)
+  mean_vec_ind <- append(mean_vec_ind, mean_diff)
+  
+}
+
+mean_vec_ind <- sort(mean_vec_ind)
+cat('The 95% confidence interval is: ', as.numeric(quantile(mean_vec_ind,0.025)),'to', as.numeric(quantile(mean_vec_ind,0.975)))
+
+```
+```{r}
+sp <- sqrt(var(dt1$BPSys3)/nrow(dt1) + var(dt1$BPSys2)/nrow(dt1))
+
+mean_diff_ind <- mean(dt1$BPSys3) - mean(dt1$BPSys2)
+
+lower <- mean_diff_ind + sp * qt(0.025, nrow(dt1)-1)
+upper <- mean_diff_ind + sp * qt(0.975, nrow(dt1)-1)
+
+# mean_diff_ind
+# sp
+# qt(0.025, nrow(dt1)*2-2)
+# qt(0.975, nrow(dt1)*2-2)
+
+cat('The 95% confidence interval is:', lower,'to', upper)
+
+
+# p.178 of text book
+```
+
+
+```{r}
+head(dt1)
+```
+
+```{r}
+# Q2a
+
+own <- dt %>% filter(HomeOwn == 'Own')
+rent <- dt %>% filter(HomeOwn == 'Rent')
+
+plot(density(rent$BPSysAve), col = 'red')
+lines(density(own$BPSysAve), col = 'blue')
+```
+
+```{r}
+# The distribution of the rent group is more peaked and is more positively skewed than the own group. It can be seen that the proportion of people with lower blood pressure is higher than the own group.
+```
+
+```{r}
+# Q2b
+
+summary(own)
+summary(rent)
+```
+
+```{r}
+# the numbers in the own group is almost twice as much than the rent group. Each group consists of roughly 50% male and female. The maximum and minimum blood pressure in the two groups is approximately the same. The median and mean is slightly lower in the rent group.
+```
+
+
+```{r}
+# Q2c
+
+own_mean <- mean(own$BPSysAve)
+rent_mean <- mean(rent$BPSysAve)
+
+avg_diff <- own_mean - rent_mean
+
+sp <- sqrt(var(own$BPSysAve)/nrow(own) + var(rent$BPSysAve)/nrow(rent))
+
+lower <- avg_diff + sp * qt(0.025, min(nrow(own), nrow(rent))-1)
+upper <- avg_diff + sp * qt(0.975, min(nrow(own), nrow(rent))-1)
+
+cat('Average bllod pressure difference between owner and renter', avg_diff, '\n')
+
+cat('The 95% confidence interval is:', lower,'to', upper)
+```
+
+
+```{r}
+# Code chunk for Q2 part d.
+
+# filter out other in homeowen
+dt2 <- dt %>% filter(HomeOwn!="Other")
+# size of sample
+n <- nrow(dt2)
+# number of iteration
+R <- 1000
+
+# student to add
+RDiff <- vector()
+
+Rdt2 <- dt2
+
+for (r in 1:R){
+  # randomly shuffle the average BP regardless of the group
+  Rdt2 <- Rdt2 %>% mutate(BPSysAve=sample(dt2$BPSysAve, n, replace=FALSE))
+  Rdt2S <- Rdt2 %>% group_by(HomeOwn) %>% summarise(mean=mean(BPSysAve)) 
+  RDiff[r] <- Rdt2S %>% summarise(Diff=mean[1]-mean[2]) 
+  
+}
+
+# the above code is about mixing the blood pressure of the renter and owner so that the resultant group should have no difference because they are mixed. Although they are mix, sometimes large difference can occur by chance. therefore, if the actual difference between the two groups falls in the lower end < 2.5% or > 97.5% of the data, we can reject the null hypothesis, because there are less than 5% that this observation can occured by chance which indicate the actual difference is significant.
+
+RDiff <- sort(unlist(RDiff))
+
+```
+
+      
+```{r}
+
+avg_diff
+
+cat('the upper and lower bounds are',quantile(RDiff, 0.025),'and',quantile(RDiff, 0.975))
+
+# the sample difference is greater than the upperbound, which indicates the actual difference is significant and is unlikely to occur simply by chance.
+# the strength of the result is highly significant since the difference is greater than all bootstrap difference, which means there is 0 chance that we can observe this sample difference by chance.
+```
+```{r}
+
+
+dt3 <- dt %>% filter(HomeOwn!="Other", Age >=35, Age <= 44, Gender == 'male')
+
+# get actual difference
+actual_diff <- dt3 %>% group_by(HomeOwn)%>% summarise(mean=mean(BPSysAve)) %>% summarise(Diff=mean[1]-mean[2]) 
+
+
+# size of sample
+n <- nrow(dt3)
+# number of iteration
+R <- 1000
+
+# student to add
+RDiff <- vector()
+
+Rdt3 <- dt3
+
+for (r in 1:R){
+  # randomly shuffle the average BP regardless of the group
+  Rdt3 <- Rdt3 %>% mutate(BPSysAve=sample(dt3$BPSysAve, n, replace=FALSE))
+  Rdt3S <- Rdt3 %>% group_by(HomeOwn) %>% summarise(mean=mean(BPSysAve)) 
+  RDiff[r] <- Rdt3S %>% summarise(Diff=mean[1]-mean[2]) 
+  
+}
+
+# the above code is about mixing the blood pressure of the renter and owner so that the resultant group should have no difference because they are mixed. Although they are mix, sometimes large difference can occur by chance. therefore, if the actual difference between the two groups falls in the lower end < 2.5% or > 97.5% of the data, we can reject the null hypothesis, because there are less than 5% that this observation can occured by chance which indicate the actual difference is significant.
+
+RDiff <- sort(unlist(RDiff))
+
+cat(as.numeric(actual_diff), '\n')
+cat('the upper and lower bounds are',quantile(RDiff, 0.025),'and',quantile(RDiff, 0.975))
+
+# We fail to reject the null hypothesis in this case since -1.23185 is between the two bounds, this means at 5% level of significance, we can casually observe such a difference between this two groups of people. The most likely reason is that, the range of the interval. i.e. dispersion is much wider than the previous case.
+```
+
+
+
+```{r}
+summary(dt3)
+```
+```{r}
+summary(dt2)
+summary(dt3)
+```
+

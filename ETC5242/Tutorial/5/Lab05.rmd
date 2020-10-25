@@ -1,0 +1,453 @@
+---
+title: "Lab05"
+author: "Joe"
+date: "September 8, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library('tibble')
+library('ggplot2')
+library('tidyverse')
+library('dplyr')
+```
+
+```{r}
+set.seed(57892)
+n <- 30
+mu.true <- 3
+sig.true <- 2
+x <- rnorm(n=n, mean=mu.true, sd=sig.true) 
+
+
+dt_data <- tibble(x=x)
+p1_simdata <- dt_data %>% ggplot(aes(x=x,y=..density..)) + geom_histogram(colour="steelblue", fill="steelblue", alpha=0.2) + geom_density(colour="steelblue", fill="steelblue", alpha=0.2) + xlim(c(-4,10)) +
+  theme_bw()
+
+p1_simdata
+```
+```{r}
+## step ii.
+
+xbar.x <- mean(x) # point estimate
+SE.x <- sd(x)/sqrt(n) # estimated SE
+ttest.out <- t.test(x) %>% tidy() #obtain the standard t-test output
+CLT.CI <- c(ttest.out$conf.low, ttest.out$conf.high) 
+
+t.test(x)
+CLT.CI 
+```
+
+```{r}
+# generate bootstrap sample
+B <- 5000
+xbar_boot <- rep(NA,B)
+for(i in 1:B){
+  temp <- sample(x, size=n, replace=TRUE)
+  xbar_boot[i] <- mean(temp)
+}
+```
+
+
+
+```{r}
+## step iv.
+
+boot.CI <- quantile(xbar_boot, c(0.025, 0.975))
+boot.CI
+```
+
+```{r}
+####??##### the bootplot.f function ############
+bootplot.f <- function(stat.boot, bins = 50) {
+df <- tibble(stat = stat.boot)
+CI <- round(quantile(stat.boot, c(0.025, 0.975)), 2)
+p <- df %>% ggplot(aes(x = stat, y = ..density..)) + geom_histogram(bins = bins,
+colour = "magenta", fill = "magenta", alpha = 0.2) +
+geom_density(fill = "magenta", colour = "magenta", alpha = 0.2) +
+geom_vline(xintercept = CI, colour = "magenta", linetype = 3) +
+theme_bw()
+p
+}
+######## end of bootplot.f function #######
+```
+
+
+
+```{r}
+#??step v.
+
+# get the basic plot
+p_xbarboot <- bootplot.f(xbar_boot, bins=100) 
+#p_xbarboot
+
+## then add layers
+## set up a range to view the entire population density
+len <- (max(xbar_boot) - min(xbar_boot))/3
+xxmax <- (max(xbar_boot) + sqrt(n)*len)
+xxmin <- (min(xbar_boot) - sqrt(n)*len)
+
+## define tibble to add layer for the population density
+xx <- seq(xxmin, xxmax, length.out=1000)
+popn <- dnorm(xx, mean=mu.true, sd=sig.true)
+dt <- tibble(xx=xx,popn=popn)
+
+## later the plot
+p_xbarboot <- p_xbarboot + 
+  geom_vline(xintercept=xbar.x, colour="red") +
+  
+  annotate("text",label=round(boot.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.5,colour="magenta") + 
+  
+  annotate("text",label=round(boot.CI[2],2), x=(boot.CI[2]+0.5),
+          y=0.5,colour="magenta") +
+   geom_vline(xintercept=CLT.CI, colour="darkslategrey", linetype=2) + 
+  
+  annotate("text",label=round(CLT.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.75,colour="darkslategrey") +
+  
+  annotate("text",label=round(CLT.CI[2],2), x=(boot.CI[2]+0.5),
+         y=0.75,colour="darkslategrey") +
+  
+  geom_line(data=dt, aes(x=xx, y=popn), colour="blue") +
+  
+  geom_vline(xintercept=mu.true, colour="blue") 
+
+## add titles and change axis labels, save plot as object p1
+p1 <- p_xbarboot + xlab(expression(bar(x))) 
+p1 <- p1 + ggtitle(expression(paste("Bootstrap-based approximate sampling distribution of ", bar(X))),"N(3,4), n=30 and B=5000") 
+
+p1
+```
+
+
+```{r}
+set.seed(57892)
+n <- 30
+mu.true <- 3
+sig.true <- 2
+x <- rnorm(n=n, mean=mu.true, sd=sig.true) # simulated values?
+dt_data <- tibble(x=x)
+p1_simdata <- dt_data %>% ggplot(aes(x=x,y=..density..)) + geom_histogram(colour="steelblue", fill="steelblue", alpha=0.2) + geom_density(colour="steelblue", fill="steelblue", alpha=0.2) + xlim(c(-4,10)) +
+  theme_bw()
+
+xbar.x <- mea?(x) # point estimate
+SE.x <- sd(x)/sqrt(n) # estimated SE
+ttest.out <- t.test(x) %>% tidy() #obtain the standard t-test output
+CLT.CI <- c(ttest.out$conf.low, ttest.out$conf.high) 
+
+# generate bootstrap sample
+B <- 50000
+xbar_boot <- rep(NA,B)
+for(i in 1:B){
+  temp <- sample(x, size=n, replace=TRUE)
+  xbar_boot[i] <- mean(temp)
+}
+
+boot.CI <- quantile(xbar_boot, c(0.025, 0.975))
+# get the basic plot
+p_xbarboot <- bootplot.f(xbar_boot, bins=100) 
+#p_xbarboot
+
+## then add layers
+## set up a range to view the ?n?ire population density
+len <- (max(xbar_boot) - min(xbar_boot))/3
+xxmax <- (max(xbar_boot) + sqrt(n)*len)
+xxmin <- (min(xbar_boot) - sqrt(n)*len)
+
+## define tibble to add layer for the population density
+xx <- seq(xxmin, xxmax, length.out=1000)
+popn <- dno?m(xx, mean=mu.true, sd=sig.true)
+dt <- tibble(xx=xx,popn=popn)
+
+## later the plot
+p_xbarboot <- p_xbarboot + 
+  geom_vline(xintercept=xbar.x, colour="red") +
+  
+  annotate("text",label=round(boot.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.5,colour="magen?a") + 
+  
+  annotate("text",label=round(boot.CI[2],2), x=(boot.CI[2]+0.5),
+          y=0.5,colour="magenta") +
+  
+  geom_vline(xintercept=CLT.CI, colour="darkslategrey", linetype=2) + 
+  
+  annotate("text",label=round(CLT.CI[1],2), x=(boot.CI[1]-0.5),
+         y=0.75,colour="darkslategrey") +
+  
+  annotate("text",label=round(CLT.CI[2],2), x=(boot.CI[2]+0.5),
+           y=0.75,colour="darkslategrey") +
+  
+  geom_line(data=dt, aes(x=xx, y=popn), colour="blue") +
+  
+  geom_vline(xintercept=mu.true, colour="blu?") 
+
+## add titles and change axis labels, save plot as object p1
+p1 <- p_xbarboot + xlab(expression(bar(x))) 
+p1 <- p1 + ggtitle(expression(paste("Bootstrap-based approximate sampling distribution of ", bar(X))),"N(3,4), n=30 and B=5000") 
+
+p1
+```
+
+
+
+```{r}
+set.seed(57892)
+n <- 300
+mu.true <- 3
+sig.true <- 2
+x <- rnorm(n=n, mean=mu.true, sd=sig.true) # simulated values
+
+
+dt_data <- tibble(x=x)
+p1_simdata <- dt_data %>% ggplot(aes(x=x,y=..density..)) + geom_histogram(colour="steelblue", fill="steelblu?", ?lpha=0.2) + geom_density(colour="steelblue", fill="steelblue", alpha=0.2) + xlim(c(-4,10)) +
+  theme_bw()
+
+xbar.x <- mean(x) # point estimate
+SE.x <- sd(x)/sqrt(n) # estimated SE
+ttest.out <- t.test(x) %>% tidy() #obtain the standard t-test output
+CLT.CI <- c(ttest.out$conf.low, ttest.out$conf.high) 
+
+# generate bootstrap sample
+B <- 5000
+xbar_boot <- rep(NA,B)
+for(i in 1:B){
+  temp <- sample(x, size=n, replace=TRUE)
+  xbar_boot[i] <- mean(temp)
+}
+
+boot.CI <- quantile(xbar_boot, c(0.025, 0.975))
+# get the basic plot
+p_xbarboot <- bootplot.f(xbar_boot, bins=100) 
+#p_xbarboot
+
+## then add layers
+## set up a range to view the entire population density
+len <- (max(xbar_boot) - min(xbar_boot))/3
+xxmax <- (max(xbar_boot) + sqrt(n)*len)
+xxmin <- (min(xbar_boot) -?sqr?(n)*len)
+
+## define tibble to add layer for the population density
+xx <- seq(xxmin, xxmax, length.out=1000)
+popn <- dnorm(xx, mean=mu.true, sd=sig.true)
+dt <- tibble(xx=xx,popn=popn)
+
+## later the plot
+p_xbarboot <- p_xbarboot + 
+  geom_vline(xintercept=xb?r.x, colour="red") +
+  
+  annotate("text",label=round(boot.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.5,colour="magenta") + 
+  
+  annotate("text",label=round(boot.CI[2],2), x=(boot.CI[2]+0.5),
+          y=0.5,colour="magenta") +
+  
+  geom_vline(xintercept=CLT.CI, colour="darkslategrey", linetype=2) + 
+  
+  annotate("text",label=round(CLT.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.75,colour="darkslategrey") +
+  
+  annotate("text",label=round(CLT.CI[2],2), x=(boot.CI[2]+0.5),
+           y=0.75,colour="?ark?lategrey") +
+  
+  geom_line(data=dt, aes(x=xx, y=popn), colour="blue") +
+  
+  geom_vline(xintercept=mu.true, colour="blue") 
+
+## add titles and change axis labels, save plot as object p1
+p1 <- p_xbarboot + xlab(expression(bar(x))) 
+p1 <- p1 + ggtitle(e?pre?sion(paste("Bootstrap-based approximate sampling distribution of ", bar(X))),"N(3,4), n=30 and B=5000") 
+
+p1
+```
+
+
+```{r}
+#B1 i)
+
+set.seed(57892)
+n <- 30
+mu.true <- 3
+sig.true <- 4
+x <- rnorm(n=n, mean=mu.true, sd=sig.true) # simulated values
+
+dt_data ?- t?bble(x=x)
+p1_simdata <- dt_data %>% ggplot(aes(x=x,y=..density..)) + geom_histogram(colour="steelblue", fill="steelblue", alpha=0.2) + geom_density(colour="steelblue", fill="steelblue", alpha=0.2) + xlim(c(-4,10)) +
+  theme_bw()
+
+p1_simdata
+```
+
+```{r}
+
+#Bii)
+xbar.x <- mean(x) # point estimate
+SE.x <- sd(x)/sqrt(n) # estimated SE
+ttest.out <- t.test(x) %>% tidy() #obtain the standard t-test output
+CLT.CI <- c(ttest.out$conf.low, ttest.out$conf.high) 
+
+CLT.CI 
+
+```
+
+```{r}
+#B1 iii)
+# generate bootstrap s?mpl?
+B <- 5000
+xbar_boot <- rep(NA,B)
+for(i in 1:B){
+  temp <- sample(x, size=n, replace=TRUE)
+  xbar_boot[i] <- mean(temp)
+}
+
+```
+
+```{r}
+## step iv.
+
+boot.CI <- quantile(xbar_boot, c(0.025, 0.975))
+boot.CI
+```
+
+```{r}
+########### the bootplot.f function ?###?#######
+bootplot.f <- function(stat.boot, bins = 50) {
+df <- tibble(stat = stat.boot)
+CI <- round(quantile(stat.boot, c(0.025, 0.975)), 2)
+p <- df %>% ggplot(aes(x = stat, y = ..density..)) + geom_histogram(bins = bins,
+colour = "magenta", fill = "mage?ta"? alpha = 0.2) +
+geom_density(fill = "magenta", colour = "magenta", alpha = 0.2) +
+geom_vline(xintercept = CI, colour = "magenta", linetype = 3) +
+theme_bw()
+p
+}
+######## end of bootplot.f function #######
+```
+
+
+```{r}
+# get the basic plot
+# get the bas?c p?ot
+p_xbarboot <- bootplot.f(xbar_boot, bins=100) 
+#p_xbarboot
+
+## then add layers
+## set up a range to view the entire population density
+len <- (max(xbar_boot) - min(xbar_boot))/3
+xxmax <- (max(xbar_boot) + sqrt(n)*len)
+xxmin <- (min(xbar_boot) - sqrt(n)*len)
+
+## define tibble to add layer for the population density
+xx <- seq(xxmin, xxmax, length.out=1000)
+popn <- dnorm(xx, mean=mu.true, sd=sig.true)
+dt <- tibble(xx=xx,popn=popn)
+
+## later the plot
+p_xbarboot <- p_xbarboot + 
+  geom_vline(xintercept=xba?.x,?colour="red") +
+  
+  annotate("text",label=round(boot.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.5,colour="magenta") + 
+  
+  annotate("text",label=round(boot.CI[2],2), x=(boot.CI[2]+0.5),
+          y=0.5,colour="magenta") +
+  
+  geom_vline(xintercept?CLT?CI, colour="darkslategrey", linetype=2) + 
+  
+  annotate("text",label=round(CLT.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.75,colour="darkslategrey") +
+  
+  annotate("text",label=round(CLT.CI[2],2), x=(boot.CI[2]+0.5),
+           y=0.75,colour="darks?ate?rey") +
+  
+  geom_line(data=dt, aes(x=xx, y=popn), colour="blue") +
+  
+  geom_vline(xintercept=mu.true, colour="blue") 
+
+## add titles and change axis labels, save plot as object p1
+p1 <- p_xbarboot + xlab(expression(bar(x))) 
+p1 <- p1 + ggtitle(expression(paste("Bootstrap-based approximate sampling distribution of ", bar(X))),"N(3,4), n=30 and B=5000") 
+
+p1
+```
+
+
+
+```{r}
+#B2
+
+set.seed(57892)
+n <- 30
+x <- rgamma(n=n, shape=3, rate=1) # simulated values
+
+dt_data <- tibble(x=x)
+p1_simdata <- dt_data %>% ggplot(aes(x=x,y=..density..)) + geom_histogram(colour="steelblue", fill="steelblue", alpha=0.2) + geom_density(colour="steelblue", fill="steelblue", alpha=0.2) + xlim(c(-4,10)) +
+  theme_bw()
+
+p1_simdata
+```
+```{r}
+xbar.x <- mean(x) # point estimate
+SE.x <- sd(x)/sqrt(n) # estimated SE
+ttest.out <- t.test(x) %>% tidy() #obtain the standard t-test output
+CLT.CI <- c(ttest.out$conf.low, ttest.out$conf.high) 
+
+# generate bootstrap sample
+B <- 5000
+xbar_boot <- rep(NA,B)
+for(i in 1:B){
+  temp <- sample(x, size=n, ?epl?ce=TRUE)
+  xbar_boot[i] <- mean(temp)
+}
+boot.CI <- quantile(xbar_boot, c(0.025, 0.975))
+
+# get the basic plot
+p_xbarboot <- bootplot.f(xbar_boot, bins=100) 
+#p_xbarboot
+
+## then add layers
+## set up a range to view the entire population density
+len <- (max(xbar_boot) - min(xbar_boot))/3
+xxmax <- (max(xbar_boot) + sqrt(n)*len)
+xxmin <- (min(xbar_boot) - sqrt(n)*len)
+
+## define tibble to add layer for the population density
+xx <- seq(xxmin, xxmax, length.out=1000)
+popn <- dnorm(xx, mean=mu.true, sd=sig.true)
+dt <- tibble(xx=xx,popn=popn)
+
+
+
+## later the plot
+p_xbarboot <- p_xbarboot + 
+  geom_vline(xintercept=xbar.x, colour="red") +
+  
+  annotate("text",label=round(boot.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.5,colour="magenta") + 
+  
+  annotate("text",label=round(boot.CI[2],2), x=(boot.CI[2]+0.5),
+          y=0.5,colour="magenta") +
+  
+  geom_vline(xintercept=CLT.CI, colour="darkslategrey", linetype=2) + 
+  
+  annotate("text",label=round(CLT.CI[1],2), x=(boot.CI[1]-0.5),
+           y=0.75,colour="darksla?egr?y") +
+  
+  annotate("text",label=round(CLT.CI[2],2), x=(boot.CI[2]+0.5),
+           y=0.75,colour="darkslategrey") +
+  
+  geom_line(data=dt, aes(x=xx, y=popn), colour="blue") +
+  
+  geom_vline(xintercept=mu.true, colour="blue") 
+
+## add titles and chan?e a?is labels, save plot as object p1
+p1 <- p_xbarboot + xlab(expression(bar(x))) 
+p1 <- p1 + ggtitle(expression(paste("Bootstrap-based approximate sampling distribution of ", bar(X))),"N(3,4), n=30 and B=5000") 
+
+p1
+```
+
+
