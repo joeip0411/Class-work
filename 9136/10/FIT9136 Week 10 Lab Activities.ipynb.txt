@@ -1,0 +1,633 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# FIT9136 Week 10 Lab\n",
+    "\n",
+    "Author: \n",
+    "<br>\n",
+    "Date (of creation): 15/10/20\n",
+    "<br>\n",
+    "Version: Student"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true
+   },
+   "source": [
+    "# Agenda\n",
+    "\n",
+    "* Revision\n",
+    "**************************\n",
+    "* Why Recursion\n",
+    "* Fibonacci Series\n",
+    "* Merge & Quick Sort\n",
+    "* What does the following code does?\n",
+    "* Recursive Binary Search\n",
+    "**************************\n",
+    "* Homework\n",
+    "    * Recursive Linear Search ?\n",
+    "    * Which is better Merge v/s Quick ?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## Revision"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "### Recursion"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* **Divide-and-Conquer**:\n",
+    "    * Solving a complex problem by breaking it into **smaller manageable sub-problems** \n",
+    "    * Sub-problems can then be solved in a similar way (with the same solution)\n",
+    "    * **Sub-solutions are then combined to produce the final solution for the original problem**\n",
+    "    \n",
+    "* **Recursion**:\n",
+    "    * A <font color=\"blue\">divide-and-conquer</font> approach for solving computational problems\n",
+    "    * Each problem is “recursively” <font color=\"blue\">decomposed into sub-problems</font> (which have the same properties the original problem but smaller in size)\n",
+    "    * When the sub-problems have reached the <font color=\"blue\">simplest form</font>, i.e. a <font color=\"blue\">known solution</font> can be defined\n",
+    "    * The <font color=\"blue\">known solutions of these sub-problems are then recomposed</font> together to produce the solution of the original problem"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "### Merge Sort"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* Merge sort:\n",
+    "    * <font color=\"blue\">Splits</font> an unsorted list into two halves “recursively” until there is only one element left in each sublist\n",
+    "    * Sublists are then <font color=\"blue\">sorted and merged</font> until the complete sorted list is obtained"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# implemenation\n",
+    "def merge_sort(the_list):\n",
+    "    #obtain the length of the list\n",
+    "    n = len(the_list)\n",
+    "    \n",
+    "    if n > 1: # check the base case\n",
+    "        # find the middle of the list\n",
+    "        mid = n //2 \n",
+    "        \n",
+    "        # based upon the middle index, two sublist are the ncreated\n",
+    "        # from the 0 index until the mid-1 index\n",
+    "        left_sublist = the_list[:mid]\n",
+    "        # from the mid index until the n-1 index\n",
+    "        right_sublist = the_list[mid:]\n",
+    "        \n",
+    "        print(\"spliting: \" +str(left_sublist) + \" and \" + str(right_sublist))\n",
+    "        \n",
+    "        # merger sort is called again on the two new created sublists\n",
+    "        merge_sort(left_sublist)\n",
+    "        merge_sort(right_sublist)\n",
+    "        \n",
+    "        # sort & merge\n",
+    "        print(\"Merging: \" +str(left_sublist) + \" and \" + str(right_sublist))\n",
+    "        i = 0 # index for left sublist\n",
+    "        j = 0 # index for right sublist\n",
+    "        k = 0 # index for main list\n",
+    "        \n",
+    "        while i < len(left_sublist) and j <len(right_sublist):\n",
+    "            if left_sublist[i] <= right_sublist[j]:\n",
+    "                the_list[k] = left_sublist[i]\n",
+    "                i += 1\n",
+    "            else:\n",
+    "                the_list[k] = right_sublist[j]\n",
+    "                j += 1\n",
+    "            k += 1\n",
+    "                \n",
+    "        \n",
+    "        # insert the remaining elements into main list\n",
+    "        while i < len(left_sublist):\n",
+    "            the_list[k] = left_sublist[i]\n",
+    "            i += 1\n",
+    "            k += 1\n",
+    "            \n",
+    "        while j < len(right_sublist):\n",
+    "            the_list[k] = right_sublist[j]\n",
+    "            j += 1\n",
+    "            k += 1\n",
+    "            \n",
+    "            \n",
+    "        print(\"After merging the list is: \" + str(the_list))\n",
+    "        \n",
+    "merge_sort([1,4,2,5,3])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-09-30T10:50:00.660338Z",
+     "start_time": "2020-09-30T10:50:00.654808Z"
+    },
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "### Quick Sort"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* Quick Sort:\n",
+    "    * Similarly to Merge Sort \n",
+    "    * Major computation is performed in “**partitioning**” (dividing the list into two partitions)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# implemenation\n",
+    "def quick_sort(the_list):\n",
+    "    # pass the indices of the first & last elements of the list\n",
+    "    first = 0\n",
+    "    last = len(the_list)-1\n",
+    "    quick_sort_aux(the_list, first, last)\n",
+    "    \n",
+    "def quick_sort_aux(the_list, first, last):\n",
+    "    # if it is not the base case\n",
+    "    if first < last:\n",
+    "        \n",
+    "        # find the partition point\n",
+    "        part_point = partitioning(the_list, first, last)\n",
+    "        \n",
+    "        print(\"partitioningning at index:\", part_point)\n",
+    "        print(the_list)\n",
+    "        print(\"after partitioning: \", str(the_list[first:part_point]),\n",
+    "              \" and \", str(the_list[part_point+1:last+1]))\n",
+    "        \n",
+    "        # call the quick sort aux function again to th new sublists\n",
+    "        quick_sort_aux(the_list, first, part_point-1)\n",
+    "        quick_sort_aux(the_list, part_point+1, last)\n",
+    "\n",
+    "def partitioning(the_list, first, last):\n",
+    "    \n",
+    "    # take the first element of the list as pivot\n",
+    "    pivot_value = the_list[first]\n",
+    "    print(\"pivot value: \", str(pivot_value))\n",
+    "    \n",
+    "    # this two indices will help us in locating the index point \n",
+    "    # where the list will be partitioned\n",
+    "    left_index = first + 1\n",
+    "    right_index = last\n",
+    "    \n",
+    "    complete = False\n",
+    "    \n",
+    "    while not complete:\n",
+    "        \n",
+    "        # starts with the left index and keep on increamenting it\n",
+    "        # until a value greater than the pivot is found\n",
+    "        while left_index <= right_index and \\\n",
+    "            the_list[left_index] <= pivot_value:\n",
+    "                left_index += 1\n",
+    "                \n",
+    "        # now look for thge element from the right of the list\n",
+    "        # which is smaller than pivot value\n",
+    "        while right_index >=  left_index and \\\n",
+    "            the_list[right_index] >= pivot_value:\n",
+    "                right_index -= 1\n",
+    "                \n",
+    "        # check wheather left and right indices have crossed each other\n",
+    "        # if that is the case exit the while loop\n",
+    "        if right_index < left_index:\n",
+    "            complete = True\n",
+    "        else:\n",
+    "            # otherwise swap the two elements\n",
+    "            the_list[left_index], the_list[right_index] \\\n",
+    "            = the_list[right_index], the_list[left_index]\n",
+    "                \n",
+    "    # swap the pivot element with the element of the right index\n",
+    "    the_list[first], the_list[right_index] \\\n",
+    "                = the_list[right_index], the_list[first]\n",
+    "        \n",
+    "    # return right index which is the partition point\n",
+    "    return right_index\n",
+    "\n",
+    "quick_sort([1,4,2,5,3])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## Why Recursion"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* **list all benefits(advantages) and detriments(Distadvantages) for using recursion**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# try it out"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## Fibonacci Series"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* **Fibonacci numbers are a classic example of recursive definitions. Fibonacci numbers are generated by adding the two previous numbers together. The sequence of numbers starts with [1,1].**\n",
+    "\n",
+    "https://www.mathsisfun.com/numbers/fibonacci-sequence.html#:~:text=The%20Fibonacci%20Sequence%20is%20the,the%20two%20numbers%20before%20it%3A&text=and%20so%20on!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* (A) Write a function that calculates the Nth Fibonacci number **iteratively**.\n",
+    "* (B) Write another function that calculates the Nth Fibonacci number **recursively**.\n",
+    "* (C) When you run your solution for b for a very large N, why does it take a long time?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-10-10T03:44:39.212940Z",
+     "start_time": "2020-10-10T03:44:39.210798Z"
+    },
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# give it go"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## Merge & Quick Sort"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* **Perform Merge & Quick sort**\n",
+    "\n",
+    "For the list [3,6,2,3,4,1,5]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## What does the following code does?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* A:\n",
+    "        def foo (a):\n",
+    "\n",
+    "            return aux_foo(0,a)\n",
+    "\n",
+    "        def aux_foo(b,a):\n",
+    "\n",
+    "            if b == a:\n",
+    "                return 1\n",
+    "            else:\n",
+    "                return 1 + aux_foo(b-1,a)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* B:\n",
+    "\n",
+    "        def fun(a, b): \n",
+    "            if (b == 0): \n",
+    "                return 1 \n",
+    "            if (b % 2 == 0): \n",
+    "                return fun(a*a, b//2)    \n",
+    "            return fun(a*a, b//2)*a  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "#Try it out"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## Recursive Binary Search\n",
+    "\n",
+    "* Try to implement the Binary serach using Recursion"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-10-17T03:10:39.141515Z",
+     "start_time": "2020-10-17T03:10:39.139741Z"
+    },
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# try it out\n",
+    "def binary_search():"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-10-17T03:12:31.786500Z",
+     "start_time": "2020-10-17T03:12:31.783561Z"
+    },
+    "hidden": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Element is present at index 5\n"
+     ]
+    }
+   ],
+   "source": [
+    "arr = [ 2, 3, 4, 10, 19, 23, 40, 50, 70 ] \n",
+    "x = 23\n",
+    "  \n",
+    "# Function call \n",
+    "result = binary_search(arr, 0, len(arr)-1, x) \n",
+    "  \n",
+    "if result != -1: \n",
+    "    print(\"Element is present at index\", str(result)) \n",
+    "else: \n",
+    "    print(\"Element is not present in array\") "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-09-30T10:18:26.786944Z",
+     "start_time": "2020-09-30T10:18:26.784423Z"
+    },
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "## HomeWork"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "### Recursive Linear Search ?\n",
+    "\n",
+    "* **A. Would the Big O complexity of Linear Search be changed if it were coded recursively?**\n",
+    "* **B. write an implementation of Linear Search that is recursive.**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "hidden": true
+   },
+   "outputs": [],
+   "source": [
+    "# implementation\n",
+    "def rec_lin_search(li,item):\n",
+    "\n",
+    "    return aux_rec_lin_search(0,li,item)\n",
+    "\n",
+    "def aux_rec_lin_search(i,li,item):\n",
+    "\n",
+    "    #check that your i is outside the list\n",
+    "    if:\n",
+    "        return\n",
+    "    #check if the item is at i\n",
+    "    elif:\n",
+    "        return\n",
+    "    #start the recursive process\n",
+    "    else:\n",
+    "        return"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2020-09-30T10:45:15.614472Z",
+     "start_time": "2020-09-30T10:45:15.612587Z"
+    },
+    "heading_collapsed": true,
+    "hidden": true
+   },
+   "source": [
+    "### Which is better Merge v/s Quick ?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "hidden": true
+   },
+   "source": [
+    "* **A. In what situation would Merge Sort be better than Quick Sort?**\n",
+    "* **B. In lectures we choose the first item as the pivot. This is an arbitrary choice. Can you consider a better way to pick a pivot?**"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.7"
+  },
+  "latex_envs": {
+   "LaTeX_envs_menu_present": true,
+   "autoclose": false,
+   "autocomplete": true,
+   "bibliofile": "biblio.bib",
+   "cite_by": "apalike",
+   "current_citInitial": 1,
+   "eqLabelWithNumbers": true,
+   "eqNumInitial": 1,
+   "hotkeys": {
+    "equation": "Ctrl-E",
+    "itemize": "Ctrl-I"
+   },
+   "labels_anchors": false,
+   "latex_user_defs": false,
+   "report_style_numbering": false,
+   "user_envs_cfg": false
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {},
+   "toc_section_display": true,
+   "toc_window_display": false
+  },
+  "varInspector": {
+   "cols": {
+    "lenName": 16,
+    "lenType": 16,
+    "lenVar": 40
+   },
+   "kernels_config": {
+    "python": {
+     "delete_cmd_postfix": "",
+     "delete_cmd_prefix": "del ",
+     "library": "var_list.py",
+     "varRefreshCmd": "print(var_dic_list())"
+    },
+    "r": {
+     "delete_cmd_postfix": ") ",
+     "delete_cmd_prefix": "rm(",
+     "library": "var_list.r",
+     "varRefreshCmd": "cat(var_dic_list()) "
+    }
+   },
+   "types_to_exclude": [
+    "module",
+    "function",
+    "builtin_function_or_method",
+    "instance",
+    "_Feature"
+   ],
+   "window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
